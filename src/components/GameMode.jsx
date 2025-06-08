@@ -1,16 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-
 export default function QuizGame({ dataJSON }) {
   const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [userAnswer, setUserAnswer] = useState('');
   const [feedback, setFeedback] = useState('');
+  const [answered, setAnswered] = useState(false);
 
-      const navigate = useNavigate();
+  const navigate = useNavigate();
 
-  // Cargar preguntas al montar
   useEffect(() => {
     fetch(dataJSON)
       .then((res) => res.json())
@@ -32,20 +31,21 @@ export default function QuizGame({ dataJSON }) {
       userAnswer.trim().toLowerCase() === currentQuestion.a.toLowerCase();
 
     setFeedback(isCorrect ? '✅ Correcto' : `❌ Incorrecto. Era: ${currentQuestion.a}`);
+    setAnswered(true);
+  };
 
-    // Mostrar siguiente pregunta después de un pequeño delay
-    setTimeout(() => {
-      setCurrentQuestion(getRandomQuestion(questions));
-      setUserAnswer('');
-      setFeedback('');
-    }, 2000);
+  const handleNextQuestion = () => {
+    setCurrentQuestion(getRandomQuestion(questions));
+    setUserAnswer('');
+    setFeedback('');
+    setAnswered(false);
   };
 
   if (!currentQuestion) return <div>Cargando...</div>;
 
   return (
     <div style={{ textAlign: 'center', padding: '20px' }}>
-        <button onClick={() => navigate('/')}>🏠</button>
+      <button onClick={() => navigate('/')}>🏠</button>
 
       <h2>¿Qué especie es esta?</h2>
       <img
@@ -60,22 +60,40 @@ export default function QuizGame({ dataJSON }) {
           onChange={(e) => setUserAnswer(e.target.value)}
           placeholder="Escribe tu respuesta"
           style={{ padding: '8px', width: '200px' }}
+          disabled={answered}
         />
       </div>
-      <button
-        onClick={handleCheckAnswer}
-        style={{
-          marginTop: '10px',
-          padding: '10px 20px',
-          backgroundColor: '#007bff',
-          color: 'white',
-          border: 'none',
-          borderRadius: '5px',
-        }}
-      >
-        Comprobar
-      </button>
+      {!answered && (
+        <button
+          onClick={handleCheckAnswer}
+          style={{
+            marginTop: '10px',
+            padding: '10px 20px',
+            backgroundColor: '#007bff',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+          }}
+        >
+          Comprobar
+        </button>
+      )}
       {feedback && <p style={{ marginTop: '10px', fontWeight: 'bold' }}>{feedback}</p>}
+      {answered && (
+        <button
+          onClick={handleNextQuestion}
+          style={{
+            marginTop: '10px',
+            padding: '10px 20px',
+            backgroundColor: '#28a745',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+          }}
+        >
+          Siguiente
+        </button>
+      )}
     </div>
   );
 }
